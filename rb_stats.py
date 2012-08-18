@@ -19,18 +19,18 @@ def parse_req_params(pargs):
 
 def get_graph_data(args):
     req_params = parse_req_params(vars(args))
-
-    ret = requests.get(args.base_api_url + '/review-requests',
-                       params=req_params)
+    root = requests.get(args.base_api_url)
+    requests_list = requests.get(root.json['links']['review_requests']['href'],
+                                 params=req_params)
 
     graph_data = defaultdict(int)
 
-    for review in ret.json['review_requests']:
-        submitter = review['links']['submitter']['title']
-
-        for people in review['target_people']:
-            reviewer = people['title']
-            graph_data[(submitter, reviewer)] += 1.0
+    for review_request in requests_list.json['review_requests']:
+        submitter = review_request['links']['submitter']['title']
+        reviews = requests.get(review_request['links']['reviews']['href'])
+        for review in reviews.json['reviews']:
+            reviewer = review['links']['user']['title']
+            graph_data[(submitter, reviewer)] += 1
     return graph_data
 
 
