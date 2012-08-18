@@ -17,6 +17,23 @@ def parse_req_params(pargs):
     return dparams
 
 
+def get_graph_data(args):
+    req_params = parse_req_params(vars(args))
+
+    ret = requests.get(args.base_api_url + '/review-requests',
+                       params=req_params)
+
+    graph_data = defaultdict(int)
+
+    for review in ret.json['review_requests']:
+        submitter = review['links']['submitter']['title']
+
+        for people in review['target_people']:
+            reviewer = people['title']
+            graph_data[(submitter, reviewer)] += 1.0
+    return graph_data
+
+
 def run_main():
     parser = argparse.ArgumentParser(description='Review Board Stats')
     parser.add_argument('base_api_url', help='The ReviewBoard base API URL')
@@ -43,20 +60,7 @@ def run_main():
                                  'hanning', 'hamming', 'gaussian'])
 
     args = parser.parse_args()
-    req_params = parse_req_params(vars(args))
-
-    ret = requests.get(args.base_api_url + '/review-requests',
-                       params=req_params)
-
-    graph_data = defaultdict(int)
-
-    for review in ret.json['review_requests']:
-        submitter = review['links']['submitter']['title']
-
-        for people in review['target_people']:
-            reviewer = people['title']
-            graph_data[(submitter, reviewer)] += 1.0
-
+    graph_data = get_graph_data(args)
     xaxis = list(set(map(lambda x: x[0], graph_data.keys())))
     yaxis = list(set(map(lambda x: x[1], graph_data.keys())))
 
