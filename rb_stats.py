@@ -61,12 +61,12 @@ def run_main():
 
     args = parser.parse_args()
     graph_data = get_graph_data(args)
-    xaxis = list(set(map(lambda x: x[0], graph_data.keys())))
-    yaxis = list(set(map(lambda x: x[1], graph_data.keys())))
+    xaxis = sorted(set(x[0] for x in graph_data.iterkeys()), reverse=True)
+    yaxis = sorted(set(x[1] for x in graph_data.iterkeys()))
 
     arr = np.zeros((len(xaxis), len(yaxis)))
 
-    for k, v in graph_data.items():
+    for k, v in graph_data.iteritems():
         x, y = k
         arr[xaxis.index(x), yaxis.index(y)] = v
 
